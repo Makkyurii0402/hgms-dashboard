@@ -1,0 +1,174 @@
+Build a **real-time sensor monitoring dashboard** using **React + Vite + TypeScript**. Styling must use **TailwindCSS**. Charts must use **Recharts**.
+
+⚠️ STRICT RULES
+- Firebase must be **Realtime Database (RTDB)** (NOT Firestore).
+- No backend server. The dashboard reads directly from Firebase using the Firebase Web SDK.
+- It’s OK if Firebase isn’t connected yet, but the code must be fully READY:
+  - create Firebase init file
+  - create RTDB listener using `onValue()`
+  - use env vars
+  - provide a toggle to run in mock mode if env vars missing
+
+---
+
+## PURPOSE
+A control-room dashboard to display environmental sensor readings coming from ESP32 + LoRa gateway uploaded to Firebase RTDB.
+
+---
+
+## SENSOR VALUES TO DISPLAY (6 CARDS)
+- Oxygen (%)  -> key: `oxygen`
+- Carbon Monoxide (ppm) -> key: `co`
+- Hydrogen Sulfide (ppm) -> key: `h2s`
+- Methane (% LEL or % volume) -> key: `methane`
+- Temperature (°C) -> key: `temperature`
+- Humidity (%) -> key: `humidity`
+
+Data includes `timestamp` (unix seconds or ms).
+
+---
+
+## FIREBASE RTDB STRUCTURE
+Assume path: `sensors/latest`
+
+Example JSON:
+{
+  "oxygen": 20.8,
+  "co": 12,
+  "h2s": 3,
+  "methane": 0.5,
+  "temperature": 31.2,
+  "humidity": 72,
+  "timestamp": 1700000000
+}
+
+The UI must listen in real time using:
+`onValue(ref(db, "sensors/latest"), callback)`
+
+---
+
+## UI REQUIREMENTS
+Make it look like an **industrial monitoring dashboard**.
+
+Layout:
+- Top header: "Gas Monitoring System"
+- Subtitle: "Realtime environmental readings"
+- Responsive grid of 6 sensor cards
+Each card shows:
+- Sensor name
+- Big value (large font)
+- Unit
+- Status pill (Safe/Warning/Danger)
+- Color changes based on thresholds
+
+Below the cards:
+- Chart 1: Temperature + Humidity line chart (last 50 points)
+- Chart 2: Gas levels chart showing Oxygen, CO, H2S, Methane (last 50 points)
+Keep last 50 readings in memory.
+
+---
+
+## STATUS THRESHOLDS (COLOR LOGIC)
+Implement these exact rules:
+
+Oxygen:
+- Safe: 19.5–23.5
+- Warning: <19.5
+- Danger: <18
+
+CO (ppm):
+- Safe: <25
+- Warning: 25–50
+- Danger: >50
+
+H2S (ppm):
+- Safe: <5
+- Warning: 5–10
+- Danger: >10
+
+Methane:
+- Safe: <1
+- Warning: 1–2
+- Danger: >2
+
+Temperature:
+- Safe: <35°C
+- Warning: 35–45
+- Danger: >45
+
+Humidity:
+- Safe: <75%
+- Warning: 75–85
+- Danger: >85
+
+Cards must compute status + apply Tailwind classes dynamically.
+
+---
+
+## FIREBASE SETUP (READY BUT OPTIONAL)
+Create `src/lib/firebase.ts` that initializes Firebase using env variables:
+
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_DATABASE_URL=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_APP_ID=
+
+If any required env var is missing:
+- automatically use mock mode
+- show a small banner: "Mock Mode (Firebase not configured)"
+
+---
+
+## DATA LAYER
+Create a hook: `useSensorStream()`
+
+Responsibilities:
+- If Firebase configured:
+  - subscribe using `onValue()` to `sensors/latest`
+  - update `latest` state
+  - append to `history` (max 50 points)
+- If mock mode:
+  - generate realistic sensor data every 2 seconds
+  - still update latest + history the same way
+- Provide proper TypeScript types for the sensor record.
+
+---
+
+## PROJECT STRUCTURE
+Use this structure:
+src/
+  components/
+    SensorCard.tsx
+    Charts.tsx
+    Header.tsx
+  hooks/
+    useSensorStream.ts
+  lib/
+    firebase.ts
+    thresholds.ts
+    format.ts
+  types/
+    sensors.ts
+  App.tsx
+  main.tsx
+  index.css
+
+---
+
+## EXTRA POLISH
+- Format numbers nicely (fixed decimals where appropriate)
+- Show “Last updated: …” human-readable time
+- Mobile-friendly grid
+- No heavy state libs, just React hooks
+- No external UI kits required
+
+---
+
+## DELIVERABLES
+Generate all code files, plus:
+- `README.md` with steps to run
+- example `.env.example` with Firebase variables
+- explain how to switch from mock mode to Firebase mode
+
+IMPORTANT: Do NOT use Next.js. Do NOT use Firestore. Do NOT build a backend server.
