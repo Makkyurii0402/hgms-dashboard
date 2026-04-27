@@ -1,11 +1,24 @@
-import { Wind, Flame, Droplets, Thermometer, Droplet, Skull } from "lucide-react";
+import { Wind, Flame, Droplets, Thermometer, Droplet, Skull, Bell, BellOff } from "lucide-react";
 import { format } from "date-fns";
 import { useSensorStream } from "../hooks/use-sensor-stream";
+import { useSensorAlerts, DEFAULT_THRESHOLDS, type Alert } from "../hooks/use-sensor-alerts";
+import { requestNotificationPermission } from "../lib/firebase-messaging";
 import { SensorCard } from "../components/sensor-card";
 import { HistoryChart } from "../components/history-chart";
+import { useState } from "react";
 
 export default function Dashboard() {
   const { latest, history, isMockMode, isConnected } = useSensorStream();
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+
+  // Set up sensor alerts
+  useSensorAlerts(latest, DEFAULT_THRESHOLDS, (alert) => {
+    setAlerts(prev => [alert, ...prev].slice(0, 10)); // Keep last 10 alerts
+  });
+
+  const handleEnableNotifications = async () => {
+    await requestNotificationPermission();
+  };
 
   return (
     <div className="min-h-screen bg-background pb-12">
@@ -53,6 +66,39 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* Alerts Section */}
+      {alerts.length > 0 && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Bell className="w-4 h-4 text-destructive" />
+            <span className="font-semibold text-destructive">Active Alerts</span>
+          </div>
+          <div className="space-y-1">
+            {alerts.map((alert, idx) => (
+              <div key={idx} className={`text-sm ${alert.type === 'critical' ? 'text-destructive font-bold' : 'text-warning'}`}>
+                {alert.message}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Enable Notifications Button */}
+      {Notification.permission === "default" && (
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BellOff className="w-4 h-4 text-primary" />
+            <span className="text-sm">Enable push notifications for alerts</span>
+          </div>
+          <button
+            onClick={handleEnableNotifications}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+          >
+            Enable Notifications
+          </button>
+        </div>
+      )}
+
       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-4">
         
         {/* Sensor Grid */}
@@ -81,7 +127,7 @@ export default function Dashboard() {
           <SensorCard
             title="Hydrogen Sulfide (H₂S)"
             value={latest?.h2s ?? 0}
-            unit="ppm"
+            unit="%"
             decimals={1}
             icon={<Droplets className="w-5 h-5" />}
             thresholds={{
@@ -90,9 +136,9 @@ export default function Dashboard() {
             }}
           />
           <SensorCard
-            title="Methane (CH₄)"
+            title="Combustible Gas"
             value={latest?.methane ?? 0}
-            unit="% LEL"
+            unit="%"
             decimals={2}
             icon={<Flame className="w-5 h-5" />}
             thresholds={{
@@ -118,9 +164,8 @@ export default function Dashboard() {
             decimals={1}
             icon={<Droplet className="w-5 h-5" />}
             thresholds={{
-              safe: (v) => v < 10,
-              danger: (v) => v > 20,
-              warning: (v) => v >= 100 && v <= 200,
+              safe: (v) => v < 100,
+              warning: (v) => v >= 100,
             }}
           />
           
