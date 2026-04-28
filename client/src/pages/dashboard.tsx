@@ -5,7 +5,7 @@ import { useSensorAlerts, DEFAULT_THRESHOLDS, type Alert } from "../hooks/use-se
 import { requestNotificationPermission } from "../lib/firebase-messaging";
 import { SensorCard } from "../components/sensor-card";
 import { HistoryChart } from "../components/history-chart";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Dashboard() {
   const { latest, history, isMockMode, isConnected } = useSensorStream();
@@ -13,8 +13,19 @@ export default function Dashboard() {
 
   // Set up sensor alerts
   useSensorAlerts(latest, DEFAULT_THRESHOLDS, (alert) => {
-    setAlerts(prev => [alert, ...prev].slice(0, 10)); // Keep last 10 alerts
+    setAlerts(prev => [alert, ...prev].slice(0, 1)); // Keep last 1 alert
   });
+
+  // Auto-dismiss alerts after 10 seconds
+  useEffect(() => {
+    if (alerts.length === 0) return;
+    
+    const timer = setTimeout(() => {
+      setAlerts(prev => prev.slice(1));
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [alerts]);
 
   const handleEnableNotifications = async () => {
     await requestNotificationPermission();
