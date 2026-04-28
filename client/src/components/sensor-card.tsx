@@ -1,5 +1,37 @@
 import { ReactNode, useEffect, useRef } from "react";
 import { AlertCircle, CheckCircle2, ShieldAlert } from "lucide-react";
+import { toast } from "../hooks/use-toast";
+
+const isBrowserNotificationSupported = () =>
+  typeof window !== "undefined" && "Notification" in window;
+
+const requestBrowserNotificationPermission = async () => {
+  if (!isBrowserNotificationSupported()) return false;
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") return false;
+
+  const permission = await Notification.requestPermission();
+  return permission === "granted";
+};
+
+const sendDangerNotification = async (
+  title: string,
+  value: number,
+  unit: string
+) => {
+  if (!isBrowserNotificationSupported()) return;
+
+  const granted =
+    Notification.permission === "granted" ||
+    (await requestBrowserNotificationPermission());
+
+  if (!granted) return;
+
+  new Notification(`${title} Danger Alert`, {
+    body: `${title} is at ${value}${unit}, which has entered the DANGER ZONE.`,
+    silent: false,
+  });
+};
 
 export type SensorStatus = "safe" | "warning" | "danger";
 
@@ -40,10 +72,18 @@ export function SensorCard({ title, value, unit, icon, thresholds, decimals = 1 
     // Only trigger when switching INTO danger
     if (previousStatus.current !== "danger" && status === "danger") {
       alarmRef.current.play().catch(() => {});
+
+      toast({
+        title: `${title} danger detected`,
+        description: `${title} is now ${value}${unit} and has entered the DANGER ZONE.`,
+        variant: "destructive",
+      });
+
+      void sendDangerNotification(title, value, unit);
     }
 
     previousStatus.current = status;
-  }, [status]);
+  }, [status, title, value, unit]);
 
   // Status styling maps
   const statusStyles = {
@@ -110,7 +150,7 @@ export function SensorCard({ title, value, unit, icon, thresholds, decimals = 1 
 
       <div className="flex items-baseline mt-2">
         <span className={`font-display text-5xl font-bold tracking-tight text-foreground ${status === 'danger' ? style.glowText : ''}`}>
-          {value.toFixed(decimals)}
+          {value}
         </span>
         <span className="ml-2 text-muted-foreground font-medium text-lg">
           {unit}
