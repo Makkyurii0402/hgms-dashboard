@@ -14,9 +14,9 @@ export interface AlertThresholds {
 
 export const DEFAULT_THRESHOLDS: AlertThresholds = {
   oxygen: { min: 19.5, max: 23.5 }, // OSHA safe range
-  co: { max: 35 }, // ppm
-  h2s: { max: 10 }, // ppm
-  methane: { max: 1000 }, // ppm (LEL)
+  co: { max: 50 }, // ppm
+  h2s: { max: 30 }, // ppm
+  methane: { max: 20 }, // ppm (LEL)
   temperature: { min: -10, max: 50 }, // Celsius
   humidity: { min: 20, max: 80 }, // %
 };
@@ -49,7 +49,7 @@ export function useSensorAlerts(
   const checkThresholds = useCallback((data: SensorData): Alert[] => {
     const alerts: Alert[] = [];
     const now = Date.now();
-    const cooldownMs = 30000; // 30 seconds between same-type alerts
+    const cooldownMs = 10000; // 10 seconds between same-type alerts
 
     // Check Oxygen
     if (data.oxygen < thresholds.oxygen.min) {
