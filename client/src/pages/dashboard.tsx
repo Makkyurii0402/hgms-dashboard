@@ -132,7 +132,7 @@ export default function Dashboard() {
             icon={<Skull className="w-5 h-5" />}
             thresholds={{
               safe: (v) => v < 30,
-              warning: (v) => v >= 50 && v <= 500,
+              warning: (v) => v >= 30 && v <= 49,
             }}
           />
           <SensorCard
@@ -143,7 +143,7 @@ export default function Dashboard() {
             icon={<Droplets className="w-5 h-5" />}
             thresholds={{
               safe: (v) => v < 15,
-              warning: (v) => v >= 30 && v <= 100,
+              warning: (v) => v >= 15 && v <= 29,
             }}
           />
           <SensorCard
@@ -154,7 +154,7 @@ export default function Dashboard() {
             icon={<Flame className="w-5 h-5" />}
             thresholds={{
               safe: (v) => v < 10,
-              warning: (v) => v >= 20 && v <= 100,
+              warning: (v) => v >= 10 && v <= 19,
             }}
           />
           <SensorCard
