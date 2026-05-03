@@ -120,7 +120,7 @@ export default function Dashboard() {
             unit="%"
             icon={<Wind className="w-5 h-5" />}
             thresholds={{
-              safe: (v) => v >= 19.5 && v <= 23.5,
+              safe: (v) => v >= 20.6 && v <= 22.0,
               warning: (v) => (v >= 18 && v < 19.5) || (v > 23.5 && v <= 24),
             }}
           />
@@ -131,8 +131,8 @@ export default function Dashboard() {
             decimals={0}
             icon={<Skull className="w-5 h-5" />}
             thresholds={{
-              safe: (v) => v < 25,
-              warning: (v) => v >= 25 && v <= 50,
+              safe: (v) => v < 30,
+              warning: (v) => v >= 50 && v <= 500,
             }}
           />
           <SensorCard
@@ -142,8 +142,8 @@ export default function Dashboard() {
             decimals={1}
             icon={<Droplets className="w-5 h-5" />}
             thresholds={{
-              safe: (v) => v < 5,
-              warning: (v) => v >= 5 && v <= 10,
+              safe: (v) => v < 15,
+              warning: (v) => v >= 30 && v <= 100,
             }}
           />
           <SensorCard
@@ -153,8 +153,8 @@ export default function Dashboard() {
             decimals={2}
             icon={<Flame className="w-5 h-5" />}
             thresholds={{
-              safe: (v) => v < 1,
-              warning: (v) => v >= 1 && v <= 2,
+              safe: (v) => v < 10,
+              warning: (v) => v >= 20 && v <= 100,
             }}
           />
           <SensorCard
